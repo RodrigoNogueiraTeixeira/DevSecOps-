@@ -13,6 +13,7 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests -B
 
+
 # ==============================================================================
 # Estagio 2: Imagem final enxuta e endurecida (Hardened Runtime)
 # ==============================================================================
