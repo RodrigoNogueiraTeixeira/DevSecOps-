@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devsecops-spring-api
+  namespace: devsecops-prod
+  labels:
+    app: devsecops-spring-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devsecops-spring-api
+  template:
+    metadata:
+      labels:
+        app: devsecops-spring-api
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: devsecops-spring-api
+          # Digest fixado e tag imutavel para conformidade de Supply Chain / IaC Security
+          image: ghcr.io/rodrigonogueirateixeira/devsecops-spring-api:1.0.0@sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: tmp-dir
+              mountPath: /tmp
+      volumes:
+        - name: tmp-dir
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devsecops-spring-api-svc
+  namespace: devsecops-prod
+  labels:
+    app: devsecops-spring-api
+spec:
+  type: ClusterIP
+  selector:
+    app: devsecops-spring-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
