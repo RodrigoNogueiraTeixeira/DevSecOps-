@@ -1,0 +1,13 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.log
+.DS_Store
+.idea/
+*.iml
+.vscode/
+.env
+.env.*
+sbom-*.json
+zap-report.*
+trivy-*.json
+image.tar
