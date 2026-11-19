@@ -67,10 +67,23 @@ jobs:
       - name: Checkout do codigo-fonte
         uses: actions/checkout@v4
 
+      - name: Configurar Java 21 e Cache Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Resolver dependencias Maven localmente (evita rate-limit 429 no Trivy)
+        run: mvn dependency:resolve -B
+
       - name: Gerar SBOM no formato CycloneDX
         run: |
           echo "📦 Gerando inventario SBOM (CycloneDX) das dependencias..."
-          docker run --rm -v "${{ github.workspace }}:/project" aquasec/trivy:latest \
+          docker run --rm \
+            -v "${{ github.workspace }}:/project" \
+            -v "$HOME/.m2:/root/.m2:ro" \
+            aquasec/trivy:latest \
             fs --format cyclonedx --output /project/sbom-cyclonedx.json /project
           ls -lh sbom-cyclonedx.json
 
@@ -84,7 +97,10 @@ jobs:
       - name: Executar SCA nas dependencias do pom.xml (Security Gate)
         run: |
           echo "🔍 Analisando vulnerabilidades (CVEs) nas bibliotecas do pom.xml..."
-          docker run --rm -v "${{ github.workspace }}:/project" aquasec/trivy:latest \
+          docker run --rm \
+            -v "${{ github.workspace }}:/project" \
+            -v "$HOME/.m2:/root/.m2:ro" \
+            aquasec/trivy:latest \
             fs --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 /project
           echo "✅ Nenhuma vulnerabilidade HIGH ou CRITICAL encontrada nas dependencias!"
 
