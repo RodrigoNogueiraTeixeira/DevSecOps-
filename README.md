@@ -60,12 +60,12 @@ Você deve introduzir **uma falha intencional**, fazer `git push` e mostrar a pi
 
 Escolha **uma** das opções abaixo durante a aula:
 
-#### 🔴 Opção A (Mais Rápida — Bloqueia em ~25s na Etapa 1: Secret Scanning)
-Adicione uma chave da AWS ou token simulado em `src/main/resources/application.properties`:
+#### 🔴 Opção A (Mais Rápida — Bloqueia em ~15s na Etapa 1: Secret Scanning)
+Adicione uma chave AWS fictícia (sem a palavra `EXAMPLE`, pois o Gitleaks ignora chaves de documentação oficial) em `src/main/resources/application.properties` — junte os prefixos abaixo sem o espaço:
 ```properties
-# Falha intencional para demonstrar o Security Gate do Gitleaks:
-aws.secret.access.key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-aws.access.key.id=AKIAIOSFODNN7EXAMPLE
+# Falha intencional para demonstrar o Security Gate do Gitleaks (remova o espaco apos AKIA):
+aws.access.key.id=AKIA 7Q2M9X4L8P3N5V2R
+aws.secret.access.key=x9K2mP7vL4qR8nT3wZ6yB1cF5hJ0dS8uA2eM4pQ9
 ```
 No terminal, execute:
 ```bash
@@ -73,7 +73,7 @@ git add src/main/resources/application.properties
 git commit -m "test: demonstracao de bloqueio secret scanning"
 git push
 ```
-> **O que mostrar na tela:** Abra a aba **Actions** no GitHub. O job **1. Secret Scanning (Gitleaks)** vai detectar a chave `AKIAIOSFODNN7EXAMPLE`, retornar `exit-code 1` e **travar toda a esteira**, impedindo que os próximos estágios rodem.
+> **O que mostrar na tela:** Abra a aba **Actions** no GitHub. O job **1. Secret Scanning (Gitleaks)** vai detectar a credencial exposta, retornar `exit-code 1` e **travar toda a esteira**, impedindo que os próximos estágios rodem.
 
 #### 🔴 Opção B (Bloqueio na Etapa 4: Container / IaC rodando como `root`)
 No arquivo `Dockerfile`, comente ou apague a linha `USER appuser` (linha 31) ou troque por `USER root`.
