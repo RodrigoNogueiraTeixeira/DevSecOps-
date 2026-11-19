@@ -50,9 +50,9 @@ jobs:
 
       - name: Executar SAST com Semgrep (Security Gate)
         run: |
-          echo "🔍 Executando analise estatica SAST (Java / Spring / OWASP)..."
+          echo "🔍 Executando analise estatica SAST (Java / OWASP Top 10)..."
           docker run --rm -v "${{ github.workspace }}:/src" semgrep/semgrep:latest \
-            semgrep scan --config "p/java" --config "p/spring" \
+            semgrep scan --config "p/java" --config "p/owasp-top-ten" \
             --error --severity ERROR /src/src/main
           echo "✅ Codigo-fonte aprovado no SAST!"
 
@@ -68,12 +68,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Gerar SBOM no formato CycloneDX
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'cyclonedx'
-          output: 'sbom-cyclonedx.json'
+        run: |
+          echo "📦 Gerando inventario SBOM (CycloneDX) das dependencias..."
+          docker run --rm -v "${{ github.workspace }}:/project" aquasec/trivy:latest \
+            fs --format cyclonedx --output /project/sbom-cyclonedx.json /project
+          ls -lh sbom-cyclonedx.json
 
       - name: Publicar Artefato SBOM (CycloneDX)
         uses: actions/upload-artifact@v4
@@ -83,15 +82,11 @@ jobs:
           retention-days: 30
 
       - name: Executar SCA nas dependencias do pom.xml (Security Gate)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'library'
-          severity: 'HIGH,CRITICAL'
+        run: |
+          echo "🔍 Analisando vulnerabilidades (CVEs) nas bibliotecas do pom.xml..."
+          docker run --rm -v "${{ github.workspace }}:/project" aquasec/trivy:latest \
+            fs --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 /project
+          echo "✅ Nenhuma vulnerabilidade HIGH ou CRITICAL encontrada nas dependencias!"
 
   # ============================================================================
   # 4. CONTEINERIZACAO E INFRAESTRUTURA COMO CODIGO (IaC & Container Security)
@@ -131,13 +126,11 @@ jobs:
         run: docker build -t devsecops-spring-api:test .
 
       - name: Escanear Imagem Docker Construida com Trivy (Security Gate)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: 'devsecops-spring-api:test'
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          severity: 'CRITICAL'
+        run: |
+          echo "🔍 Escaneando imagem Docker construida em busca de CVEs criticas..."
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest \
+            image --severity CRITICAL --ignore-unfixed --exit-code 1 devsecops-spring-api:test
+          echo "✅ Imagem Docker aprovada sem CVEs criticas!"
 
   # ============================================================================
   # 5. ANALISE DINAMICA DE SEGURANCA (DAST)
