@@ -29,7 +29,7 @@ RUN apk update && apk upgrade --no-cache && \
 COPY --from=builder --chown=appuser:appgroup /build/target/*.jar /app/app.jar
 
 # Requisito DevSecOps: Nao executar o container como root
-USER root
+USER appuser
 
 EXPOSE 8080
 
