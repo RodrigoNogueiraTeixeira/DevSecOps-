@@ -61,11 +61,10 @@ Você deve introduzir **uma falha intencional**, fazer `git push` e mostrar a pi
 Escolha **uma** das opções abaixo durante a aula:
 
 #### 🔴 Opção A (Mais Rápida — Bloqueia em ~15s na Etapa 1: Secret Scanning)
-Adicione uma chave AWS fictícia (sem a palavra `EXAMPLE`, pois o Gitleaks ignora chaves de documentação oficial) em `src/main/resources/application.properties` — junte os prefixos abaixo sem o espaço:
+Adicione uma chave AWS fictícia (sem a palavra `EXAMPLE`, pois o Gitleaks ignora chaves de documentação oficial) no final de `src/main/resources/application.properties` — por exemplo, junte `AKIA` + 16 letras/números maiúsculos (ex.: `7Q2M9X4L8P3N5V2R`):
 ```properties
-# Falha intencional para demonstrar o Security Gate do Gitleaks (remova o espaco apos AKIA):
-aws.access.key.id=AKIA 7Q2M9X4L8P3N5V2R
-aws.secret.access.key=x9K2mP7vL4qR8nT3wZ6yB1cF5hJ0dS8uA2eM4pQ9
+# Falha intencional para demonstrar o Security Gate do Gitleaks:
+aws.access.key.id=AKIA + <16_CARACTERES_ALEATORIOS_MAIUSCULOS>
 ```
 No terminal, execute:
 ```bash
